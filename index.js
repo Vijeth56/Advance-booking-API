@@ -25,6 +25,10 @@ client
 
 // get all rooms based on tenant id
 
+app.get("/", (res, req) => {
+  res.send("Advace Booking API");
+});
+
 app.get("/rooms", (req, res) => {
   client.query(
     `select room_no from room_details where tenant_info_id = ${tenant_id}`,
