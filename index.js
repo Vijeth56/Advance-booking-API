@@ -7,7 +7,7 @@ const tenant_id = 1;
 const app = express();
 app.use(cors());
 app.use(express.json());
-const port = process.env.PORT;
+const port = process.env.PORT || 8000;
 
 const client = new Client({
   host: process.env.HOST,
