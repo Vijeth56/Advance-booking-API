@@ -141,7 +141,6 @@ const getRoomDetailsIdFromRoomNo = async (roomNo) => {
 
 app.post("/create", async (req, res) => {
   const data = req.body;
-
   const {
     name,
     mobile_no,
@@ -152,10 +151,13 @@ app.post("/create", async (req, res) => {
     start_date,
     end_date,
   } = data;
+  // console.log(data);
+
+  const room_details_id = await getRoomDetailsIdFromRoomNo(room_no);
+  const tenant_id = 1;
 
   try {
     const rooms = await getRoomsByTenantId(tenant_id);
-
     const allRooms = {};
     rooms.forEach((room) => {
       allRooms[room.room_details_id] = room.room_type;
@@ -174,15 +176,13 @@ app.post("/create", async (req, res) => {
         allRooms[roomNumber] === room_type
       );
     });
-
     if (availableRooms.length === 0) {
       return res
         .status(404)
         .send("No available rooms for the specified criteria.");
     }
-
-    console.log("Data inserted successfully");
     const bookings = [];
+    const roomsAllocated = [];
 
     // random allocation case
     if (room_no === undefined || no_of_rooms > 1) {
@@ -191,7 +191,7 @@ app.post("/create", async (req, res) => {
           availableRooms[Math.floor(Math.random() * availableRooms.length)];
         const eResult = await client.query({
           text: `INSERT INTO advance_booking (name, mobile_no, email_address, booking_start, booking_end, tenant_id, room_details_id)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING adv_booking_id`,
+                     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING adv_booking_id`,
           values: [
             name,
             mobile_no,
@@ -203,11 +203,11 @@ app.post("/create", async (req, res) => {
           ],
         });
         const adv_booking_id = eResult.rows[0].adv_booking_id;
+        // console.log("Bookings Created");
         // console.log(adv_booking_id);
         bookings.push(adv_booking_id);
       }
     }
-
     // required room_no. is given
     else {
       const roomDetailsId = await getRoomDetailsIdFromRoomNo(room_no);
@@ -235,17 +235,6 @@ app.post("/create", async (req, res) => {
       }
     }
     // console.log(bookings);
-
-    // all working properly
-    // console.log("All Rooms:", allRooms);
-    // console.log("Allocated Rooms:", allocatedRooms);
-    // console.log("Available Rooms:", availableRooms);
-    // res.status(200).send({
-    //   error: false,
-    //   msg: "New Booking(s) created!",
-    //   bookingId: bookings,
-    // });
-
     if (bookings.length > 0) {
       console.log(
         "New Booking(s) created! Booking IDs: " + bookings.join(", ")
