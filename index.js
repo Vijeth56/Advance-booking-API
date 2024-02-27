@@ -25,8 +25,8 @@ client
 
 // get all rooms based on tenant id
 
-app.get("/", (res, req) => {
-  res.send("Advace Booking API");
+app.get("/", (req, res) => {
+  res.send("Advance Booking API");
 });
 
 app.get("/rooms", (req, res) => {
