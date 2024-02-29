@@ -232,6 +232,10 @@ app.post("/create", async (req, res) => {
         // console.log(adv_booking_id);
       } else {
         console.log("Selected room is not available.");
+        res.status(200).send({
+          error: false,
+          msg: "Selected room is not available.",
+        });
       }
     }
     // console.log(bookings);
