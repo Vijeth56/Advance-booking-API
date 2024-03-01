@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 
 app.get("/rooms", (req, res) => {
   client.query(
-    `select room_no from room_details where tenant_info_id = ${tenant_id}`,
+    `select room_no, description from room_details where tenant_info_id = ${tenant_id}`,
     (err, result) => {
       if (!err) {
         // console.log(result.rows);
