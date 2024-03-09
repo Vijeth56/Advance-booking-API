@@ -261,6 +261,123 @@ app.post("/create", async (req, res) => {
   }
 });
 
+app.post("/update", async (req, res) => {
+  const data = req.body;
+  // for checkin update
+  if (
+    "adv_booking_id" in data &&
+    "checkedIn" in data &&
+    Object.keys(data).length === 2
+  ) {
+    try {
+      const { adv_booking_id, checkedIn } = data;
+
+      await client.query({
+        text: `UPDATE advance_booking
+               SET checked_in = true
+               WHERE adv_booking_id = $1`,
+        values: [adv_booking_id],
+      });
+
+      console.log(
+        `Checked-in status updated successfully for booking ${adv_booking_id}`
+      );
+      res
+        .status(200)
+        .json({ message: "Checked-in status updated successfully" });
+    } catch (error) {
+      console.error("Error updating checked-in status:", error);
+      res.status(500).json({ error: "Error updating checked-in status" });
+    }
+  }
+  // for details update
+  else {
+    const {
+      adv_booking_id,
+      name,
+      mobile_no,
+      email,
+      room_type,
+      room_no,
+      start_date,
+      end_date,
+    } = data;
+    // console.log(data);
+
+    try {
+      const room_details_id = await getRoomDetailsIdFromRoomNo(room_no);
+      const tenant_id = 1;
+
+      const allBookingsQuery = {
+        text: `SELECT booking_start, booking_end
+             FROM advance_booking
+             WHERE room_details_id = $1
+             AND tenant_id = $2
+             AND adv_booking_id != $3`,
+        values: [room_details_id, tenant_id, adv_booking_id],
+      };
+      const allBookingsResult = await client.query(allBookingsQuery);
+      const roomBookings = allBookingsResult.rows.map((booking) => ({
+        startDate: booking.booking_start,
+        endDate: booking.booking_end,
+      }));
+      // console.log(allocatedRooms);
+      // console.log(room_details_id);
+      const overlapExists = roomBookings.some((booking) => {
+        const bookingStartDate = new Date(booking.startDate);
+        const bookingEndDate = new Date(booking.endDate);
+        const newStartDate = new Date(start_date);
+        const newEndDate = new Date(end_date);
+
+        // Check if the new booking overlaps with any existing booking
+        return (
+          (newStartDate >= bookingStartDate && newStartDate < bookingEndDate) ||
+          (newEndDate > bookingStartDate && newEndDate <= bookingEndDate) ||
+          (newStartDate <= bookingStartDate && newEndDate >= bookingEndDate)
+        );
+      });
+
+      // console.log(roomBookings);
+      // console.log(start_date);
+      // console.log(end_date);
+      if (overlapExists) {
+        // res.status(200).send("Room is already booked for selected time.");
+        res
+          .status(200)
+          .json({ message: "Room is already booked for selected time." });
+      } else {
+        await client.query({
+          text: `UPDATE advance_booking
+               SET name = $1,
+                   mobile_no = $2,
+                   email_address = $3,
+                   booking_start = $4,
+                   booking_end = $5,
+                   room_details_id = $6
+               WHERE adv_booking_id = $7 AND tenant_id = $8`,
+          values: [
+            name,
+            mobile_no,
+            email,
+            start_date,
+            end_date,
+            room_details_id,
+            adv_booking_id,
+            tenant_id,
+          ],
+        });
+
+        console.log(`Booking updated successfully ${adv_booking_id}`);
+        // res.status(200).send("Booking updated successfully");
+        res.status(200).json({ message: "Booking updated successfully" });
+      }
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      res.status(500).send("Error updating booking");
+    }
+  }
+});
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 });
