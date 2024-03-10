@@ -356,8 +356,8 @@ app.post("/update", async (req, res) => {
                    booking_start = $4,
                    booking_end = $5,
                    room_details_id = $6,
-                   address = $9,
-                   city = $10
+                   booking_address = $9,
+                   booking_city = $10
                WHERE adv_booking_id = $7 AND tenant_id = $8`,
           values: [
             name,
