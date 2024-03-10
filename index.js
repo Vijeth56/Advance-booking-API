@@ -298,6 +298,8 @@ app.post("/update", async (req, res) => {
       mobile_no,
       email,
       room_type,
+      address,
+      city,
       room_no,
       start_date,
       end_date,
@@ -353,7 +355,9 @@ app.post("/update", async (req, res) => {
                    email_address = $3,
                    booking_start = $4,
                    booking_end = $5,
-                   room_details_id = $6
+                   room_details_id = $6,
+                   address = $9,
+                   city = $10
                WHERE adv_booking_id = $7 AND tenant_id = $8`,
           values: [
             name,
@@ -364,6 +368,8 @@ app.post("/update", async (req, res) => {
             room_details_id,
             adv_booking_id,
             tenant_id,
+            address,
+            city,
           ],
         });
 
