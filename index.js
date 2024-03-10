@@ -267,16 +267,18 @@ app.post("/update", async (req, res) => {
   if (
     "adv_booking_id" in data &&
     "checkedIn" in data &&
-    Object.keys(data).length === 2
+    Object.keys(data).length === 4
   ) {
     try {
-      const { adv_booking_id, checkedIn } = data;
+      const { adv_booking_id, checkedIn, address, city } = data;
 
       await client.query({
         text: `UPDATE advance_booking
-               SET checked_in = true
-               WHERE adv_booking_id = $1`,
-        values: [adv_booking_id],
+         SET checked_in = $1,
+             booking_address = $2,
+             booking_city = $3
+         WHERE adv_booking_id = $4`,
+        values: [checkedIn, address, city, adv_booking_id],
       });
 
       console.log(
